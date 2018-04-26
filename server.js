@@ -2,9 +2,16 @@
 var express = require('express');
 var app = express();
 var path = require('path');
+var Guid = require('Guid');
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+var azure = require('azure-storage');
 var port = process.env.PORT || 3000;
+
+
+var tableService = azure.createTableService();
+
+
 
 server.listen(port, function () {
   console.log('Server listening at port %d', port);
@@ -13,6 +20,25 @@ server.listen(port, function () {
 app.use(express.static('public'));
 
 sockets = []
+
+
+function addMessageToTable(from, chatId, message){
+  var entity = {
+    PartitionKey: "ChatRoulette",
+    ChatId: chatId,
+    UserId: from,
+    Time: new Date(),
+    RowKey: Guid.raw(),
+    Message: message,
+  };
+  console.log(entity)
+  tableService.insertEntity('messages', entity, function(error, result, response) {
+    console.log(error)
+    if (!error) {
+      console.log("success")
+    }
+  });
+}
 
 io.on('connection', function (socket) {
   var addedUser = false;
@@ -25,6 +51,8 @@ io.on('connection', function (socket) {
         username: socket.username,
         message: data
       });
+      console.log("hello")
+      addMessageToTable(socket.username, socket.chatId, data)
     }
   });
 
@@ -34,7 +62,7 @@ io.on('connection', function (socket) {
         console.log(socket.username + " is talking to " + socket.partner.username)
       }
       else {
-        if (socket.waiting) {
+        if (!socket.chatId) {
           console.log(socket.username + " is waiting")
         }
         else {
@@ -52,15 +80,16 @@ io.on('connection', function (socket) {
     // we store the username in the socket session for this client
     socket.username = username;
 
-    socket.waiting = true;
     var waitingSocket = sockets.find(element => {
-      return element.waiting
+      return !element.chatId
     });
     if (waitingSocket) {
+      chatId = Guid.raw();
       waitingSocket.partner = socket;
       socket.partner = waitingSocket;
-      socket.waiting = false;
-      socket.partner.waiting = false;
+      socket.chatId = chatId;
+      socket.partner.chatId = chatId;
+      console.log("chatId", chatId);
     }
     sockets.push(socket);
 
