@@ -10,8 +10,7 @@ var port = process.env.PORT || 3000;
 
 
 var tableService = azure.createTableService();
-
-
+var queueService = azure.createQueueService();
 
 server.listen(port, function () {
   console.log('Server listening at port %d', port);
@@ -24,15 +23,31 @@ sockets = []
 
 function addMessageToTable(from, chatId, message){
   var entity = {
-    PartitionKey: "ChatRoulette",
+    PartitionKey: "chatroulette",
     ChatId: chatId,
     UserId: from,
     Time: new Date(),
     RowKey: Guid.raw(),
     Message: message,
   };
-  console.log(entity)
   tableService.insertEntity('messages', entity, function(error, result, response) {
+    console.log(error)
+    if (!error) {
+      console.log("success")
+    }
+  });
+}
+
+function addMessageToQueue(from, chatId, message){
+  var entity = {
+    ChatId: chatId,
+    UserId: from,
+    Time: new Date(),
+    Message: message,
+  };
+  console.log(JSON.stringify(entity));
+
+  queueService.createMessage('messagesqueue', JSON.stringify(entity), function(error) {
     console.log(error)
     if (!error) {
       console.log("success")
@@ -51,8 +66,8 @@ io.on('connection', function (socket) {
         username: socket.username,
         message: data
       });
-      console.log("hello")
-      addMessageToTable(socket.username, socket.chatId, data)
+      addMessageToTable(socket.username, socket.chatId, data);
+      addMessageToQueue(socket.username, socket.chatId, data);
     }
   });
 
