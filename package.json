@@ -2,9 +2,9 @@
   "name": "chatroulette",
   "version": "1.0.0",
   "description": "The game to teach kids internet safety",
-  "main": "./src/index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node ./src/index.js",
+    "start": "node server.js",
     "test": "./node_modules/.bin/mocha"
   },
   "author": "",
