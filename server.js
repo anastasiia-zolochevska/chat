@@ -37,7 +37,6 @@ io.on('connection', function (socket) {
         username: socket.username,
         message: data
       });
-      storage.addMessageToTable(socket.username, socket.chatId, data);
       storage.addMessageToQueue(socket.username, socket.chatId, data);
     }
   });
