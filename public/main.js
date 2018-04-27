@@ -52,7 +52,7 @@ $(function () {
     if (message && connected) {
       $inputMessage.val('');
       addChatMessage({
-        username: username,
+        username: "You",
         message: message
       });
       // tell server to execute 'new message' and send along one parameter
@@ -92,11 +92,11 @@ $(function () {
   }
 
   // Adds the visual chat typing message
-  function addChatTyping(data) {
-    data.typing = true;
-    data.message = 'is typing';
-    addChatMessage(data);
-  }
+  // function addChatTyping(data) {
+  //   data.typing = true;
+  //   data.message = 'is typing';
+  //   addChatMessage(data);
+  // }
 
   // Removes the visual chat typing message
   function removeChatTyping(data) {
@@ -223,7 +223,7 @@ $(function () {
     // Display the welcome message
     var message = ''
     if (data.partner) {
-      message += "You are talking to " + data.partner;
+      message += "You are talking to the other person";
     }
     else {
       message += "Noone joined the conversation yet";
@@ -236,17 +236,20 @@ $(function () {
 
   // Whenever the server emits 'new message', update the chat body
   socket.on('new message', function (data) {
-    addChatMessage(data);
+    addChatMessage({
+      username: "The other person",
+      message: data.message
+    });
   });
 
   // Whenever the server emits 'user joined', log it in the chat body
   socket.on('user joined', function (data) {
-    log(data.username + ' joined');
+    log('The other person joined');
   });
 
   // Whenever the server emits 'user left', log it in the chat body
   socket.on('user left', function (data) {
-    log(data.username + ' left');
+    log('The other person left');
     removeChatTyping(data);
   });
 
