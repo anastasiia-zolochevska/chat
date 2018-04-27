@@ -1,7 +1,13 @@
 var azure = require('azure-storage');
+var Guid = require('Guid');
 var tableService = azure.createTableService();
 var queueService = azure.createQueueService();
-var Guid = require('Guid');
+
+const QueueMessageEncoder = azure.QueueMessageEncoder;
+console.log(queueService.messageEncoder);
+queueService.messageEncoder = new QueueMessageEncoder.TextBase64QueueMessageEncoder();
+console.log(queueService.messageEncoder);
+
 
 function getPredifinedMatches() {
     predifinedMatches = {}
@@ -49,7 +55,6 @@ function addMessageToQueue(from, chatId, message) {
         Time: new Date(),
         Message: message,
     };
-    console.log(JSON.stringify(entity));
 
     queueService.createMessage('messagesqueue', JSON.stringify(entity), function (error) {
         console.log(error)
